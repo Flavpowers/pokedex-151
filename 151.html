@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Pokédex 151 - Mémoire</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #111;
+    color: white;
+}
+
+input {
+    padding: 12px;
+    font-size: 18px;
+    width: 260px;
+    border-radius: 8px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px,1fr));
+    gap: 8px;
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.cell {
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.found {
+    background: #1e3a1e;
+}
+
+img {
+    width: 60px;
+}
+
+#badge {
+    font-size: 24px;
+    margin-top: 10px;
+    color: gold;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🧠 Pokédex 151</h1>
+
+<p id="counter">0 / 151</p>
+
+<p>
+⏱️ Temps : <span id="timer">0</span>s  
+<button onclick="toggleTimer()">ON / OFF</button>
+</p>
+
+<input id="input" placeholder="Nom du Pokémon">
+<br>
+<button onclick="add()">Ajouter</button>
+<button onclick="reset()">Reset</button>
+
+<div id="badge"></div>
+
+<div id="grid"></div>
+
+<script>
+
+const POKEDEX = [
+[1,"bulbizarre"],[2,"herbizarre"],[3,"florizarre"],
+[4,"salameche"],[5,"reptincel"],[6,"dracaufeu"],
+[7,"carapuce"],[8,"carabaffe"],[9,"tortank"],
+[10,"chenipan"],[11,"chrysacier"],[12,"papilusion"],
+[13,"aspicot"],[14,"coconfort"],[15,"dardargnan"],
+[16,"roucool"],[17,"roucoups"],[18,"roucarnage"],
+[19,"rattata"],[20,"rattatac"],
+[21,"piafabec"],[22,"rapasdepic"],
+[23,"abo"],[24,"arbok"],
+[25,"pikachu"],[26,"raichu"],
+[27,"sabelette"],[28,"sablaireau"],
+[29,"nidoran f"],[30,"nidorina"],[31,"nidoqueen"],
+[32,"nidoran m"],[33,"nidorino"],[34,"nidoking"],
+[35,"melofee"],[36,"melodelfe"],
+[37,"goupix"],[38,"feunard"],
+[39,"rondoudou"],[40,"grodoudou"],
+[41,"nosferapti"],[42,"nosferalto"],
+[43,"mystherbe"],[44,"ortide"],[45,"rafflesia"],
+[46,"paras"],[47,"parasect"],
+[48,"mimitoss"],[49,"aeromite"],
+[50,"taupiqueur"],[51,"triopikeur"],
+[52,"miaouss"],[53,"persian"],
+[54,"psykokwak"],[55,"akwakwak"],
+[56,"ferosinge"],[57,"colossinge"],
+[58,"caninos"],[59,"arcanin"],
+[60,"ptitard"],[61,"tetarte"],[62,"tartard"],
+[63,"abra"],[64,"kadabra"],[65,"alakazam"],
+[66,"machoc"],[67,"machopeur"],[68,"mackogneur"],
+[69,"chetiflor"],[70,"boustiflor"],[71,"empiflor"],
+[72,"tentacool"],[73,"tentacruel"],
+[74,"racaillou"],[75,"gravalanch"],[76,"grolem"],
+[77,"ponyta"],[78,"galopa"],
+[79,"ramoloss"],[80,"flagadoss"],
+[81,"magneti"],[82,"magneton"],
+[83,"canarticho"],
+[84,"doduo"],[85,"dodrio"],
+[86,"otaria"],[87,"lamantine"],
+[88,"tadmorv"],[89,"grotadmorv"],
+[90,"kokiyas"],[91,"crustabri"],
+[92,"fantominus"],[93,"spectrum"],[94,"ectoplasma"],
+[95,"onix"],
+[96,"soporifik"],[97,"hypnomade"],
+[98,"krabby"],[99,"krabboss"],
+[100,"voltorbe"],[101,"electrode"],
+[102,"noeunoeuf"],[103,"noadkoko"],
+[104,"osselait"],[105,"ossatueur"],
+[106,"kicklee"],[107,"tygnon"],
+[108,"excelangue"],
+[109,"smogo"],[110,"smogogo"],
+[111,"rhinocorne"],[112,"rhinoferos"],
+[113,"leveinard"],
+[114,"saquedeneu"],
+[115,"kangourex"],
+[116,"hypotrempe"],[117,"hypocean"],
+[118,"poissirene"],[119,"poissoroy"],
+[120,"stari"],[121,"staross"],
+[122,"m.mime"],
+[123,"insecateur"],
+[124,"lippoutou"],
+[125,"elektek"],
+[126,"magmar"],
+[127,"scarabrute"],
+[128,"tauros"],
+[129,"magicarpe"],[130,"leviator"],
+[131,"lokhlass"],
+[132,"metamorph"],
+[133,"evoli"],[134,"aquali"],[135,"voltali"],[136,"pyroli"],
+[137,"porygon"],
+[138,"amonita"],[139,"amonistar"],
+[140,"kabuto"],[141,"kabutops"],
+[142,"ptera"],
+[143,"ronflex"],
+[144,"artikodin"],[145,"electhor"],[146,"sulfura"],
+[147,"minidraco"],[148,"draco"],[149,"dracolosse"],
+[150,"mewtwo"],[151,"mew"]
+];
+
+let found = JSON.parse(localStorage.getItem("found151")) || [];
+
+let timerOn = false;
+let start = Date.now();
+
+setInterval(()=>{
+    if(timerOn){
+        document.getElementById("timer").textContent =
+        Math.floor((Date.now()-start)/1000);
+    }
+},1000);
+
+function toggleTimer(){
+    timerOn = !timerOn;
+    if(timerOn) start = Date.now();
+}
+
+function add(){
+    let input = document.getElementById("input");
+    let name = input.value.toLowerCase().trim();
+
+    let entry = POKEDEX.find(p=>p[1]===name);
+
+    if(!entry) return;
+    if(found.includes(entry[0])) return;
+
+    found.push(entry[0]);
+    localStorage.setItem("found151",JSON.stringify(found));
+
+    input.value="";
+    render();
+}
+
+document.getElementById("input").addEventListener("keypress",e=>{
+    if(e.key==="Enter") add();
+});
+
+function render(){
+    let grid = document.getElementById("grid");
+    grid.innerHTML="";
+
+    POKEDEX.forEach(([id,name])=>{
+        let div = document.createElement("div");
+
+        if(found.includes(id)){
+            div.className="cell found";
+            div.innerHTML = `
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png">
+                <div>${name}</div>
+            `;
+        } else {
+            div.className="cell";
+            div.textContent = "#" + id;
+        }
+
+        grid.appendChild(div);
+    });
+
+    document.getElementById("counter").textContent =
+    found.length + " / 151";
+
+    if(found.length === 151){
+        document.getElementById("badge").textContent = "🏆 Pokédex complété !";
+    }
+}
+
+function reset(){
+    if(confirm("Reset ?")){
+        localStorage.clear();
+        found=[];
+        render();
+    }
+}
+
+render();
+
+</script>
+
+</body>
+</html>
